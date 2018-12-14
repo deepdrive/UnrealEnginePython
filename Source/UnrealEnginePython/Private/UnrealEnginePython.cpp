@@ -15,10 +15,14 @@
 #endif
 
 #if ENGINE_MINOR_VERSION >= 18
-#define PROJECT_CONTENT_DIR FPaths::ProjectContentDir()
+#define PROJECT_CONTENT_DIR FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir())
+#define PROJECT_DIR FPaths::ProjectDir()
 #else
-#define PROJECT_CONTENT_DIR FPaths::GameContentDir()
+#define PROJECT_CONTENT_DIR FPaths::ConvertRelativePathToFull(FPaths::GameContentDir())
+#define PROJECT_DIR FPaths::GameDir()
+
 #endif
+
 
 #if PLATFORM_MAC
 #include "Runtime/Core/Public/Mac/CocoaThread.h"
@@ -87,7 +91,6 @@ bool PyUnicodeOrString_Check(PyObject *py_obj)
 	return false;
 }
 
-#define LOCTEXT_NAMESPACE "FUnrealEnginePythonModule"
 
 void FUnrealEnginePythonModule::UESetupPythonInterpreter(bool verbose)
 {
@@ -233,6 +236,10 @@ FAutoConsoleCommand ExecPythonStringCommand(
 
 void FUnrealEnginePythonModule::StartupModule()
 {
+    // TODO: Refactor large method
+
+	UE_LOG(LogPython, Log, TEXT(">>> Loading UnrealEnginePythonPlugin"));
+
 	BrutalFinalize = false;
 
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
@@ -250,7 +257,8 @@ void FUnrealEnginePythonModule::StartupModule()
 
 	if (GConfig->GetString(UTF8_TO_TCHAR("Python"), UTF8_TO_TCHAR("RelativeHome"), PythonHome, GEngineIni))
 	{
-		PythonHome = FPaths::Combine(*PROJECT_CONTENT_DIR, *PythonHome);
+		UE_LOG(LogPython, Log, TEXT("RelativeHome set, checking if directory exists"));
+		PythonHome = FPaths::Combine(*PROJECT_DIR, *PythonHome);
 		FPaths::NormalizeFilename(PythonHome);
 		PythonHome = FPaths::ConvertRelativePathToFull(PythonHome);
 #if PY_MAJOR_VERSION >= 3
@@ -258,8 +266,16 @@ void FUnrealEnginePythonModule::StartupModule()
 #else
 		char *home = TCHAR_TO_UTF8(*PythonHome);
 #endif
-
-		Py_SetPythonHome(home);
+		if (FPaths::DirectoryExists(PythonHome))
+		{
+			UE_LOG(LogPython, Log, TEXT("Setting Python home to %s"), *PythonHome);
+			Py_SetPythonHome(home);
+		}
+		else
+		{
+			UE_LOG(LogPython, Log, TEXT("RelativeHome directory does not exist, no Python dependencies to load. Not setting Python home."));
+			PythonHome = FString(TEXT(""));
+		}
 	}
 
 	TArray<FString> ImportModules;

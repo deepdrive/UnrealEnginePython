@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 public class UnrealEnginePython : ModuleRules
 {
-
     // leave this string as empty for triggering auto-discovery of python installations...
     private string pythonHome = "";
     // otherwise specify the path of your python installation
@@ -22,7 +21,8 @@ public class UnrealEnginePython : ModuleRules
         "C:/Program Files/Python36",
         "C:/Program Files/Python35",
         "C:/Python27",
-        "C:/IntelPython35"
+        "C:/IntelPython35",
+        "D:/Appz/Miniconda3"
     };
 
     private string[] macKnownPaths =
@@ -175,6 +175,7 @@ public class UnrealEnginePython : ModuleRules
         if (UEBuildConfiguration.bBuildEditor)
 #endif
         {
+            System.Console.WriteLine("Adding UEPy Editor dependencies");
             PrivateDependencyModuleNames.AddRange(new string[]{
                 "UnrealEd",
                 "LevelEditor",
@@ -200,6 +201,9 @@ public class UnrealEnginePython : ModuleRules
                 "LandscapeEditor",
                 "MaterialEditor"
             });
+        }
+        else {
+        	System.Console.WriteLine("Not adding UEPy Editor dependencies");
         }
 
         if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
@@ -248,6 +252,8 @@ public class UnrealEnginePython : ModuleRules
                 {
                     throw new System.Exception("Unable to find Python libs, please add a search path to linuxKnownLibsPaths");
                 }
+                System.Console.WriteLine("Discovered Python includes in " + includesPath);
+                System.Console.WriteLine("Discovered Python lib at " + libsPath);
                 PublicIncludePaths.Add(includesPath);
                 PublicAdditionalLibraries.Add(libsPath);
 
@@ -255,7 +261,9 @@ public class UnrealEnginePython : ModuleRules
             else
             {
                 string[] items = pythonHome.Split(';');
+                System.Console.WriteLine("Using Python includes from " + items[0]);
                 PublicIncludePaths.Add(items[0]);
+                System.Console.WriteLine("Using Python libs at " + items[1]);
                 PublicAdditionalLibraries.Add(items[1]);
             }
         }
@@ -288,6 +296,7 @@ public class UnrealEnginePython : ModuleRules
         // insert the PYTHONHOME content as the first known path
         List<string> paths = new List<string>(knownPaths);
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", binaryPath));
+        paths.Insert(0, Path.Combine(ModuleDirectory, "../../../../Binaries", binaryPath));
         string environmentPath = System.Environment.GetEnvironmentVariable("PYTHONHOME");
         if (!string.IsNullOrEmpty(environmentPath))
             paths.Insert(0, environmentPath);
@@ -319,12 +328,14 @@ public class UnrealEnginePython : ModuleRules
     private string DiscoverLinuxPythonIncludesPath()
     {
         List<string> paths = new List<string>(linuxKnownIncludesPaths);
+        paths.Insert(0, Path.Combine(ModuleDirectory, "../../linux", "python3.5m", "include"));
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", "Linux", "include"));
         foreach (string path in paths)
         {
             string headerFile = Path.Combine(path, "Python.h");
             if (File.Exists(headerFile))
             {
+                System.Console.WriteLine("Using linux include path at " + path);
                 return path;
             }
         }
@@ -334,12 +345,14 @@ public class UnrealEnginePython : ModuleRules
     private string DiscoverLinuxPythonLibsPath()
     {
         List<string> paths = new List<string>(linuxKnownLibsPaths);
+        paths.Insert(0, Path.Combine(ModuleDirectory, "../../linux", "x86_64-linux-gnu", "libpython3.5m.so"));
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", "Linux", "lib"));
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", "Linux", "lib64"));
         foreach (string path in paths)
         {
             if (File.Exists(path))
             {
+                System.Console.WriteLine("Using linux lib path at " + path);
                 return path;
             }
         }
