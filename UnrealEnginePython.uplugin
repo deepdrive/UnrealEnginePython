@@ -13,12 +13,12 @@
 	"EnabledByDefault": true,
 	"CanContainContent": true,
 	"IsBetaVersion": true,
-	"Installed": false,
+	"Installed": true,
   "Modules": [
     {
       "Name": "UnrealEnginePython",
       "Type": "Runtime",
-      "LoadingPhase": "Default"
+      "LoadingPhase": "PreDefault"
     },
     {
       "Name": "PythonAutomation",
