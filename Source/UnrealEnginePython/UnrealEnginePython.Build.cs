@@ -43,14 +43,14 @@ public class UnrealEnginePython : ModuleRules
         "/usr/local/include/python3.7m",
         "/usr/local/include/python3.6",
         "/usr/local/include/python3.6m",
-        "/usr/local/include/python3.5",
+//        "/usr/local/include/python3.5",
         "/usr/local/include/python3.5m",
         "/usr/local/include/python2.7",
         "/usr/include/python3.7",
         "/usr/include/python3.7m",
         "/usr/include/python3.6",
         "/usr/include/python3.6m",
-        "/usr/include/python3.5",
+//        "/usr/include/python3.5",
         "/usr/include/python3.5m",
         "/usr/include/python2.7",
     };
@@ -255,6 +255,8 @@ public class UnrealEnginePython : ModuleRules
                 System.Console.WriteLine("Discovered Python includes in " + includesPath);
                 System.Console.WriteLine("Discovered Python lib at " + libsPath);
                 PublicIncludePaths.Add(includesPath);
+//                PublicIncludePaths.Add("/usr/include");
+//                PublicIncludePaths.Add("/home/a/src/deepdrive-sim-2.1/Plugins/UnrealEnginePython/linux/include");
                 PublicAdditionalLibraries.Add(libsPath);
 
             }
@@ -333,7 +335,9 @@ public class UnrealEnginePython : ModuleRules
     private string DiscoverLinuxPythonIncludesPath()
     {
         List<string> paths = new List<string>(linuxKnownIncludesPaths);
-        paths.Insert(0, Path.Combine(ModuleDirectory, "../../linux", "python3.5m", "include"));
+        string projPy35path = Path.Combine(ModuleDirectory, "../../linux", "python3.5m", "include");
+        System.Console.WriteLine("Adding project python include path: " + projPy35path);
+        paths.Insert(0,  projPy35path);
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", "Linux", "include"));
         foreach (string path in paths)
         {
@@ -350,7 +354,9 @@ public class UnrealEnginePython : ModuleRules
     private string DiscoverLinuxPythonLibsPath()
     {
         List<string> paths = new List<string>(linuxKnownLibsPaths);
-        paths.Insert(0, Path.Combine(ModuleDirectory, "../../linux", "x86_64-linux-gnu", "libpython3.5m.so"));
+        string projPy35path = Path.Combine(ModuleDirectory, "../../linux", "x86_64-linux-gnu", "libpython3.5m.so");
+        System.Console.WriteLine("Adding project python lib path: " + projPy35path);
+        paths.Insert(0, projPy35path);
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", "Linux", "lib"));
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", "Linux", "lib64"));
         foreach (string path in paths)
