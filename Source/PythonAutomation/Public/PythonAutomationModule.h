@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ModuleInterface.h"
+#include "Modules/ModuleManager.h"
 
 class FPythonAutomationModule : public IModuleInterface
 {
