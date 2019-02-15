@@ -51,24 +51,6 @@ const char *ue4_module_options = "linux_global_symbols";
 #include "Android/AndroidApplication.h"
 #endif
 
-#include "Misc/Paths.h"
-#include "HAL/FileManager.h"
-
-
-//Deleter class for TUniquePtr<wchar_t> pointers that store the result of Py_DecodeLocale()
-class PyMemDeleter
-{
-	public:
-		PyMemDeleter() = default;
-		PyMemDeleter(const PyMemDeleter&) = default;
-		PyMemDeleter& operator=(const PyMemDeleter&) = default;
-		~PyMemDeleter() = default;
-		
-		void operator()(wchar_t* mem) const {
-			PyMem_RawFree(mem);
-		}
-};
-
 
 const char *UEPyUnicode_AsUTF8(PyObject *py_str)
 {
@@ -203,7 +185,7 @@ static void setup_stdout_stderr()
 		"    def isatty(self):\n"
 		"        return False\n"
 		"sys.stdout = UnrealEngineOutput(unreal_engine.log)\n"
-		"sys.stderr = UnrealEngineOutput(unreal_engine.log)\n"
+		"sys.stderr = UnrealEngineOutput(unreal_engine.log_error)\n"
 		"\n"
 		"class event:\n"
 		"    def __init__(self, event_signature):\n"
@@ -491,41 +473,7 @@ void FUnrealEnginePythonModule::StartupModule()
 	Py_SetPath(Py_DecodeLocale(TCHAR_TO_UTF8(*BasePythonPath), NULL));
 #endif
 #endif
-	
-	//Retrieve the paths to the Engine and project plugin directories
-	FString enginePlugins = FPaths::ConvertRelativePathToFull(FPaths::EnginePluginsDir());
-	FString projectPlugins = FPaths::ConvertRelativePathToFull(FPaths::ProjectPluginsDir());
-	
-	//Attempt to detect the absolute path to our EmbeddedPython directory
-	TArray<FString> matches;
-	FString dirToFind = TEXT("EmbeddedPython");
-	IFileManager& fileManager = IFileManager::Get();
-	fileManager.FindFilesRecursive(matches, *enginePlugins, *dirToFind, false, true, false);
-	fileManager.FindFilesRecursive(matches, *projectPlugins, *dirToFind, false, true, false);
-	
-	//If we detected our embedded Python then set the name of the Python interpreter appropriately
-	if (matches.Num() > 0)
-	{
-		//Make sure we use the correct version of the embedded interpreter for the host platform
-		#if PLATFORM_LINUX
-			#define _PLATFORM_NAME TEXT("Linux")
-		#elif PLATFORM_MAC
-			#define _PLATFORM_NAME TEXT("Mac")
-		#elif PLATFORM_WINDOWS
-			#define _PLATFORM_NAME TEXT("Windows")
-		#else
-			#define _PLATFORM_NAME TEXT("Unknown")
-		#endif
-		FString programName = FPaths::Combine(matches[0], _PLATFORM_NAME, TEXT("bin"), TEXT("python3"));
-		UE_LOG(LogPython, Log, TEXT("Setting Python program name to %s"), *programName);
-		#undef _PLATFORM_NAME
-		
-		//Pass the interpreter path to Python, ensuring the memory containing the string outlives the interpreter
-		static TUniquePtr<wchar_t, PyMemDeleter> programNamePtr;
-		programNamePtr.Reset(Py_DecodeLocale(TCHAR_TO_UTF8(*programName), NULL));
-		Py_SetProgramName(programNamePtr.Get());
-	}
-	
+
 	Py_Initialize();
 
 #if PLATFORM_WINDOWS
