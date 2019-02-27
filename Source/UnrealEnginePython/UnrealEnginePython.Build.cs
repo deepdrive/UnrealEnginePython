@@ -258,7 +258,8 @@ public class UnrealEnginePython : ModuleRules
 //                PublicIncludePaths.Add("/usr/include");
 //                PublicIncludePaths.Add("/home/a/src/deepdrive-sim-2.1/Plugins/UnrealEnginePython/linux/include");
                 PublicAdditionalLibraries.Add(libsPath);
-
+                PublicAdditionalLibraries.AddRange(new string[] { "pthread", "dl", "util", "m" });
+                RuntimeDependencies.Add(System.IO.Path.Combine(ModuleDirectory, "../../EmbeddedPython/..."), StagedFileType.NonUFS);
             }
             else
             {
@@ -335,7 +336,7 @@ public class UnrealEnginePython : ModuleRules
     private string DiscoverLinuxPythonIncludesPath()
     {
         List<string> paths = new List<string>(linuxKnownIncludesPaths);
-        string projPy35path = Path.Combine(ModuleDirectory, "../../linux", "python3.5m", "include");
+        string projPy35path = Path.Combine(ModuleDirectory, "../../EmbeddedPython/Linux", "include", "python3.6m");
         System.Console.WriteLine("Adding project python include path: " + projPy35path);
         paths.Insert(0,  projPy35path);
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", "Linux", "include"));
@@ -354,7 +355,7 @@ public class UnrealEnginePython : ModuleRules
     private string DiscoverLinuxPythonLibsPath()
     {
         List<string> paths = new List<string>(linuxKnownLibsPaths);
-        string projPy35path = Path.Combine(ModuleDirectory, "../../linux", "x86_64-linux-gnu", "libpython3.5m.so");
+        string projPy35path = Path.Combine(ModuleDirectory, "../../EmbeddedPython/Linux", "lib", "libpython3.6m.a");
         System.Console.WriteLine("Adding project python lib path: " + projPy35path);
         paths.Insert(0, projPy35path);
         paths.Insert(0, Path.Combine(ModuleDirectory, "../../Binaries", "Linux", "lib"));
